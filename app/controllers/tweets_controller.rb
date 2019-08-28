@@ -9,7 +9,7 @@ class TweetsController < ApplicationController
 
     if @tweet.save
       respond_to do |format|
-        format.html { redirect_to request.referrer }
+        format.html { redirect_to request.referer }
         format.json { render :show }
       end
     else
