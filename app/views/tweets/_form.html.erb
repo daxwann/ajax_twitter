@@ -7,13 +7,13 @@
 
   <label>
     Content
-    <textarea name="tweet[content]"></textarea>
+    <textarea class="tweet-input tweet-input_content" name="tweet[content]"></textarea>
   </label>
   <br>
 
   <label>
     Mention
-    <select name="tweet[mentioned_user_ids][]">
+    <select class="tweet-input tweet-input_mentions" name="tweet[mentioned_user_ids][]">
       <option></option>
       <% User.all.each do |user| %>
         <option value="<%= user.id %>"><%= user.username %></option>
@@ -22,5 +22,5 @@
   </label>
   <br>
 
-  <input type="Submit" value="Post Tweet!">
+  <input class="tweet-input tweet-input_submit" type="Submit" value="Post Tweet!">
 </form>

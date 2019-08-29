@@ -22,6 +22,15 @@ const APIUtils = {
       data: {query: queryVal},
       dataType: "json"
     });
+  },
+
+  createTweet: formData => {
+    return $.ajax({
+      method: "POST",
+      url: "/tweets",
+      data: formData,
+      dataType: "json"
+    })
   }
 }
 

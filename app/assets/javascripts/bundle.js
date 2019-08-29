@@ -117,6 +117,15 @@ const APIUtils = {
       data: {query: queryVal},
       dataType: "json"
     });
+  },
+
+  createTweet: formData => {
+    return $.ajax({
+      method: "POST",
+      url: "/tweets",
+      data: formData,
+      dataType: "json"
+    })
   }
 }
 
@@ -178,6 +187,54 @@ module.exports = FollowToggle;
 
 /***/ }),
 
+/***/ "./frontend/tweet_compose.js":
+/*!***********************************!*\
+  !*** ./frontend/tweet_compose.js ***!
+  \***********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+const APIUtils = __webpack_require__(/*! ./api_utils.js */ "./frontend/api_utils.js");
+
+class TweetCompose {
+  constructor($formEl) {
+    this.$formEl = $formEl;
+    this.handleSubmit();
+  }
+
+  handleSubmit() {
+    this.$formEl.on("submit", (e) => {
+      e.preventDefault();
+
+      const formData = $(e.currentTarget).serializeJSON();
+      this.submit(formData);
+    });
+  }
+
+  submit(formData) {
+
+    // disable all form inputs
+    $(".tweet-input").prop("disabled", true);
+
+    APIUtils.createTweet(formData).then(this.handleSuccess.bind(this));
+  }
+
+  handleSuccess(res) {
+    renderTweet(res);
+    this.clearInput();
+    $(".tweet-input").prop("disabled", false);
+  }
+
+  clearInput() {
+    $(".tweet-input_content").val('');
+    $(".tweet-input_mentions > option").prop("selected", false);
+  }
+}
+
+module.exports = TweetCompose;
+
+/***/ }),
+
 /***/ "./frontend/twitter.js":
 /*!*****************************!*\
   !*** ./frontend/twitter.js ***!
@@ -187,6 +244,7 @@ module.exports = FollowToggle;
 
 const FollowToggle = __webpack_require__(/*! ./follow_toggle.js */ "./frontend/follow_toggle.js");
 const UsersSearch = __webpack_require__(/*! ./users_search.js */ "./frontend/users_search.js");
+const TweetCompose = __webpack_require__(/*! ./tweet_compose.js */ "./frontend/tweet_compose.js");
 
 $(() => {
   $(".follow-toggle").each((idx, el) => {
@@ -195,6 +253,10 @@ $(() => {
 
   $("nav.users-search").each((idx, el) => {
     const usersSearch = new UsersSearch($(el));
+  })
+
+  $("form.tweet-compose").each((idx, el) => {
+    const tweetCompose = new TweetCompose($(el));
   })
 });
 
