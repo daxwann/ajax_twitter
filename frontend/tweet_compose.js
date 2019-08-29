@@ -24,9 +24,14 @@ class TweetCompose {
   }
 
   handleSuccess(res) {
-    renderTweet(res);
+    this.renderTweet(res);
     this.clearInput();
     $(".tweet-input").prop("disabled", false);
+  }
+
+  renderTweet(res) {
+    const $tweet = $(`<li>${JSON.stringify(res)}</li>`);
+    $(this.$formEl.data("feedId")).prepend($tweet);
   }
 
   clearInput() {
