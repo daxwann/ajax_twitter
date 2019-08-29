@@ -211,6 +211,41 @@ class TweetCompose {
     });
   }
 
+  handleInput() {
+    this.$formEl.on("input", ".tweet-input_content", (e) => {
+      const content = $(e.currentTarget).val();
+      this.checkCharCount(content);
+    });
+  }
+
+  checkCharCount(content) {
+    const charsLeft = 150;
+    charsLeft -= content.length;
+    this.displayCharsLeft(charsLeft);
+  }
+
+  displayCharsLeft(charsLeft) {
+    const $charsLeftEl = $(".chars-left");
+    
+    if (charsLeft < 0) {
+      $charsLeftEl.text(`You have exceeded max 150 characters!`);
+      $charsLeftEl.addClass(".warning");
+    } else {
+      $charsLeftEl.text(`${charsLeft} characters left`);
+      $charsLeftEl.removeClass(".warning");
+    }
+  }
+
+  disableSubmit() {
+    this.$formEl.off("submit");
+    $(".tweet-input_submit").prop("disabled", true);
+  }
+
+  enableSubmit() {
+    this.handleSubmit();
+    $(".tweet-input_submit").prop("disabled", false);
+  }
+
   submit(formData) {
 
     // disable all form inputs
