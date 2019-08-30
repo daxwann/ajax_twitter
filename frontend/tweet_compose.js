@@ -5,7 +5,6 @@ class TweetCompose {
     this.$formEl = $formEl;
     this.$atResult = $($formEl.find(".search-result")[0]);
     this.submitOn = true;
-    this.mentions = [];
     this.handleSubmit();
     this.handleInput();
   }
@@ -14,6 +13,8 @@ class TweetCompose {
     this.$formEl.on("submit", (e) => {
       e.preventDefault();
 
+      this.$atResult.empty();
+      this.checkAllMentions($(".tweet-input_content").val());
       const formData = $(e.currentTarget).serializeJSON();
       this.submit(formData);
     });
@@ -29,25 +30,30 @@ class TweetCompose {
 
   checkLastMention(content) {
     // match the last occurence of @
-    const lastAt = /([^\S]|^)\@([0-9A-Za-z\_]+)$/g
+    const lastAt = /(?:[\s]|^)\@([0-9A-Za-z\_]+)$/g
     const result = lastAt.exec(content);
     
     if (result) {
-      APIUtils.searchUsers(result[2]).then(this.renderResult.bind(this));
+      APIUtils.searchUsers(result[1]).then(this.renderSearchResult.bind(this));
     } else {
       this.$atResult.empty();
     }
   }
 
   checkAllMentions(content) {
-    
+    // match all occurences of @
+    const allAt = /(?:[\s]|^)\@([0-9A-Za-z\_]+)/g;
+    let result;
+    while ((result = allAt.exec(content)) !== null) {
+      console.log(result);
+    }
   }
 
-  renderResult(res) {
+  renderSearchResult(res) {
     this.$atResult.empty();
     res.forEach((user) => {
       const $user = $(`<li>
-        <a href="/users/${user.id}">${user.username}</a>
+        <a href="/users/${user.id}">@${user.username}</a>
       </li>`);
       this.$atResult.append($user);
     });
