@@ -199,7 +199,11 @@ const APIUtils = __webpack_require__(/*! ./api_utils.js */ "./frontend/api_utils
 class TweetCompose {
   constructor($formEl) {
     this.$formEl = $formEl;
+    this.$atResult = $($formEl.find(".search-result")[0]);
+    this.submitOn = true;
+    this.mentions = [];
     this.handleSubmit();
+    this.handleInput();
   }
 
   handleSubmit() {
@@ -214,36 +218,71 @@ class TweetCompose {
   handleInput() {
     this.$formEl.on("input", ".tweet-input_content", (e) => {
       const content = $(e.currentTarget).val();
+      this.checkLastMention(content);
       this.checkCharCount(content);
     });
   }
 
-  checkCharCount(content) {
-    const charsLeft = 150;
-    charsLeft -= content.length;
-    this.displayCharsLeft(charsLeft);
+  checkLastMention(content) {
+    // match the last occurence of @
+    const lastAt = /([^\S]|^)\@([0-9A-Za-z\_]+)$/g
+    const result = lastAt.exec(content);
+    
+    if (result) {
+      APIUtils.searchUsers(result[2]).then(this.renderResult.bind(this));
+    } else {
+      this.$atResult.empty();
+    }
   }
 
-  displayCharsLeft(charsLeft) {
+  checkAllMentions(content) {
+    
+  }
+
+  renderResult(res) {
+    this.$atResult.empty();
+    res.forEach((user) => {
+      const $user = $(`<li>
+        <a href="/users/${user.id}">${user.username}</a>
+      </li>`);
+      this.$atResult.append($user);
+    });
+  }
+
+  checkCharCount(content) {
+    let charsLeft = 150;
+    charsLeft -= content.length;
+
+    charsLeft < 0 ? this.disableSubmit() : this.enableSubmit();
+    this.renderCharsLeft(charsLeft);
+  }
+
+  renderCharsLeft(charsLeft) {
     const $charsLeftEl = $(".chars-left");
     
     if (charsLeft < 0) {
       $charsLeftEl.text(`You have exceeded max 150 characters!`);
-      $charsLeftEl.addClass(".warning");
+      $charsLeftEl.addClass("warning");
     } else {
       $charsLeftEl.text(`${charsLeft} characters left`);
-      $charsLeftEl.removeClass(".warning");
+      $charsLeftEl.removeClass("warning");
     }
   }
 
   disableSubmit() {
-    this.$formEl.off("submit");
-    $(".tweet-input_submit").prop("disabled", true);
+    if (this.submitON) {
+      this.$formEl.off("submit");
+      $(".tweet-input_submit").prop("disabled", true);
+      this.submitON = false;
+    }
   }
 
   enableSubmit() {
-    this.handleSubmit();
-    $(".tweet-input_submit").prop("disabled", false);
+    if (!this.submitOn) {
+      this.handleSubmit();
+      $(".tweet-input_submit").prop("disabled", false);
+      this.submitOn = true;
+    }
   }
 
   submit(formData) {

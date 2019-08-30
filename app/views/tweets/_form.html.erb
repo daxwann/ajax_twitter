@@ -4,25 +4,17 @@
       type="hidden"
       name="authenticity_token"
       value="<%= form_authenticity_token %>">
-
-  <label>
-    Content
-    <textarea class="tweet-input tweet-input_content" name="tweet[content]"></textarea>
-  </label>
+  <textarea 
+    class="tweet-input tweet-input_content"
+    name="tweet[content]"
+    placeholder="What's happening?"></textarea>
   <br>
 
-  <strong class="chars-left"></strong>
-
-  <label>
-    Mention
-    <select class="tweet-input tweet-input_mentions" name="tweet[mentioned_user_ids][]">
-      <option></option>
-      <% User.all.each do |user| %>
-        <option value="<%= user.id %>"><%= user.username %></option>
-      <% end %>
-    </select>
-  </label>
+  <strong class="chars-left">150 characters left</strong>
   <br>
+  
+  <ul class="search-result">
+  </ul>
 
   <input class="tweet-input tweet-input_submit" type="Submit" value="Post Tweet!">
 </form>
