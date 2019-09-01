@@ -210,38 +210,48 @@ class TweetCompose {
       e.preventDefault();
 
       this.$atResult.empty();
-      this.checkAllMentions($(".tweet-input_content").val());
       const formData = $(e.currentTarget).serializeJSON();
       this.submit(formData);
     });
   }
 
   handleInput() {
-    this.$formEl.on("input", ".tweet-input_content", (e) => {
-      const content = $(e.currentTarget).val();
-      this.checkLastMention(content);
-      this.checkCharCount(content);
+    this.$formEl.on("input click", ".tweet-input_content", (e) => {
+      const value = $(e.currentTarget).val();
+      const selectedMention = this.findMention(value, e.currentTarget.selectionStart)
+      this.checkSelectedMention(selectedMention);
+      this.checkCharCount(value);
     });
   }
 
-  checkLastMention(content) {
-    // match the last occurence of @
-    const lastAt = /(?:[\s]|^)\@([0-9A-Za-z\_]+)$/g
-    const result = lastAt.exec(content);
-    
-    if (result) {
-      APIUtils.searchUsers(result[1]).then(this.renderSearchResult.bind(this));
-    } else {
-      this.$atResult.empty();
+  findMention(content, selectedIdx) {
+    // get content before and after the selected position
+    const contentBeforeSelected = content.slice(0, selectedIdx);
+    const contentAfterSelected = content.slice(selectedIdx);
+
+    // get content between @ symbol and end of word
+    const toPrevAt = /(?:[\s]|^)\@([0-9A-Za-z\_]+)$/g;
+    const toEnd = /^([a-zA-Z0-9\_]+)/g;
+    const strAfterAt = toPrevAt.exec(contentBeforeSelected);
+    const strBeforeEnd = toEnd.exec(contentAfterSelected);
+    if (!strAfterAt) {
+      return null;
     }
+
+    let selectedContent = strAfterAt[1];
+
+    if (strBeforeEnd) {
+      selectedContent = selectedContent.concat(strBeforeEnd[1]);
+    }
+
+    return selectedContent;
   }
 
-  checkAllMentions(content) {
-    // match all occurences of @
-    const allAt = /(?:[\s]|^)\@([0-9A-Za-z\_]+)/g;
-    let result;
-    while ((result = allAt.exec(content)) !== null) {
-      console.log(result);
+  checkSelectedMention(username) {
+    if (username) {
+      APIUtils.searchUsers(username).then(this.renderSearchResult.bind(this));
+    } else {
+      this.$atResult.empty();
     }
   }
 
