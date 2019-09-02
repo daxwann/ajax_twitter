@@ -1,3 +1,18 @@
 .warning {
   color: $red;
 }
+
+.editor {
+  width: 70vw;
+  min-width: 400px;
+  height: 10rem;
+  max-height: 700px;
+  font-size: 1.4rem;
+  padding: 1rem;
+  overflow-y: auto;
+  border: 1px solid #000;
+}
+
+.tweet-input_content {
+  display: none;
+}

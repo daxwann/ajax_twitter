@@ -199,11 +199,13 @@ const APIUtils = __webpack_require__(/*! ./api_utils.js */ "./frontend/api_utils
 class TweetCompose {
   constructor($formEl) {
     this.$formEl = $formEl;
-    this.$atResult = $($formEl.find(".search-result")[0]);
+    this.$suggestionList = $($formEl.find(".suggested-users")[0]);
     this.submitOn = true;
     this.handleSubmit();
     this.handleInput();
   }
+
+  // EVENTS
 
   handleSubmit() {
     this.$formEl.on("submit", (e) => {
@@ -216,13 +218,15 @@ class TweetCompose {
   }
 
   handleInput() {
-    this.$formEl.on("input click", ".tweet-input_content", (e) => {
+    this.$formEl.on("input", ".editor", (e) => {
       const value = $(e.currentTarget).val();
       const selectedMention = this.findMention(value, e.currentTarget.selectionStart)
-      this.checkSelectedMention(selectedMention);
+      this.searchForUsers(selectedMention);
       this.checkCharCount(value);
     });
   }
+
+  // PARSE INPUT
 
   findMention(content, selectedIdx) {
     // get content before and after the selected position
@@ -247,23 +251,39 @@ class TweetCompose {
     return selectedContent;
   }
 
-  checkSelectedMention(username) {
-    if (username) {
-      APIUtils.searchUsers(username).then(this.renderSearchResult.bind(this));
+  // SEARCH SUGGESTIONS
+
+  searchForUsers(selectedMention) {
+    if (selectedMention) {
+      APIUtils.searchUsers(selectedMention).then((res) => {
+        this.handleSearchResult(selectedMention, res);
+      });
     } else {
       this.$atResult.empty();
     }
   }
 
-  renderSearchResult(res) {
+  handleSearchResult(selectedMention, res) {
     this.$atResult.empty();
     res.forEach((user) => {
-      const $user = $(`<li>
-        <a href="/users/${user.id}">@${user.username}</a>
-      </li>`);
-      this.$atResult.append($user);
+      this.renderSuggestedUser(user);
+      this.checkExactMatch(user, selectedMention);
     });
   }
+
+  // USER SUGGESTIONS
+
+  renderSuggestedUser(user) {
+    const $user = $(`<li>
+        <a href="/users/${user.id}">@${user.username}</a>
+      </li>`);
+    this.$atResult.append($user);
+  }
+
+  // FIND ALL MENTIONED USERS
+
+  
+  // CHARACTERS LEFT
 
   checkCharCount(content) {
     let charsLeft = 150;
@@ -284,6 +304,8 @@ class TweetCompose {
       $charsLeftEl.removeClass("warning");
     }
   }
+
+  // SUBMIT
 
   disableSubmit() {
     if (this.submitON) {

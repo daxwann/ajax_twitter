@@ -4,6 +4,11 @@
       type="hidden"
       name="authenticity_token"
       value="<%= form_authenticity_token %>">
+
+  <div class="editor" contenteditable>
+    <p>What's happening?</p>
+  </div>
+
   <textarea 
     class="tweet-input tweet-input_content"
     name="tweet[content]"
@@ -13,7 +18,7 @@
   <strong class="chars-left">150 characters left</strong>
   <br>
 
-  <ul class="search-result">
+  <ul class="suggested-users">
   </ul>
 
   <fieldset class="mentioned-users">
