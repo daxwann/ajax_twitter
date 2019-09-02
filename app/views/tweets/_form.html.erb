@@ -5,24 +5,13 @@
       name="authenticity_token"
       value="<%= form_authenticity_token %>">
 
-  <div class="editor" contenteditable>
-    <p>What's happening?</p>
-  </div>
-
-  <textarea 
-    class="tweet-input tweet-input_content"
-    name="tweet[content]"
-    placeholder="What's happening?"></textarea>
-  <br>
+  <div class="tweet-content" contenteditable placeholder="What's happening?"></div>
 
   <strong class="chars-left">150 characters left</strong>
   <br>
 
   <ul class="suggested-users">
   </ul>
-
-  <fieldset class="mentioned-users">
-  </fieldset>
 
   <input class="tweet-input tweet-input_submit" type="Submit" value="Post Tweet!">
 </form>

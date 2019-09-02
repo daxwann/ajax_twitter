@@ -22,9 +22,10 @@ class TweetCompose {
   }
 
   handleInput() {
-    this.$formEl.on("input", ".editor", (e) => {
-      const value = $(e.currentTarget).val();
-      const selectedMention = this.findMention(value, e.currentTarget.selectionStart)
+    this.$formEl.on("input", ".tweet-content", (e) => {
+      const value = $(e.currentTarget).html();
+      this.highlightMentions(value);
+      const selectedMention = this.parseCurrentMention(value);
       this.searchForUsers(selectedMention);
       this.checkCharCount(value);
     });
@@ -34,6 +35,7 @@ class TweetCompose {
 
   findMention(content, selectedIdx) {
     // get content before and after the selected position
+    console.log(selectedIdx);
     const contentBeforeSelected = content.slice(0, selectedIdx);
     const contentAfterSelected = content.slice(selectedIdx);
 
@@ -52,6 +54,8 @@ class TweetCompose {
       selectedContent = selectedContent.concat(strBeforeEnd[1]);
     }
 
+    console.log(selectedContent);
+
     return selectedContent;
   }
 
@@ -63,7 +67,7 @@ class TweetCompose {
         this.handleSearchResult(selectedMention, res);
       });
     } else {
-      this.$atResult.empty();
+      this.$suggestionList.empty();
     }
   }
 

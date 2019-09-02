@@ -2,7 +2,7 @@
   color: $red;
 }
 
-.editor {
+.tweet-content {
   width: 70vw;
   min-width: 400px;
   height: 10rem;
@@ -13,6 +13,11 @@
   border: 1px solid #000;
 }
 
-.tweet-input_content {
-  display: none;
+.tweet-content:empty:before {
+  content: attr(placeholder);
+  display: block; /* For Firefox */
+}
+
+.highlight {
+  color: #29A2FF;
 }
