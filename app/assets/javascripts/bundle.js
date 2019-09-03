@@ -219,17 +219,40 @@ class TweetCompose {
 
   handleInput() {
     this.$formEl.on("input", ".tweet-content", (e) => {
-      const value = $(e.currentTarget).html();
-      this.highlightMentions(value);
-      const selectedMention = this.parseCurrentMention(value);
-      this.searchForUsers(selectedMention);
-      this.checkCharCount(value);
+      this.highlightAllMentions($(e.currentTarget));
+      // const selectedMention = this.parseCurrentMention(value);
+      // this.searchForUsers(selectedMention);
+      // this.checkCharCount(value);
     });
   }
 
   // PARSE INPUT
 
-  findMention(content, selectedIdx) {
+  highlightAllMentions($target) {
+    let content = $target.text();
+    const ampersand = /(?:[\s]|^)(\@[0-9A-Za-z\_]+)/g;
+    const highlighted = /\<span class\=\"highlight\"\>([\S]+)\<\/span\>/g;
+    
+    let matchesHighlighted = content.match(highlighted);
+    if (matchesHighlighted) {
+      matchesHighlighted.forEach((match) => {
+        content = content.replace(match, `${$1}`);
+      });
+    }
+
+    console.log(content);
+
+    let matchesAmpersand = content.match(ampersand);
+    if (matchesAmpersand) {
+      matchesAmpersand.forEach((match) => {
+        content = content.replace(match, `<span class="highlight">${match}</span>`)
+      });
+
+      $target.html(content);
+    }
+  }
+
+  parseCurrentMention(content, selectedIdx) {
     // get content before and after the selected position
     console.log(selectedIdx);
     const contentBeforeSelected = content.slice(0, selectedIdx);
