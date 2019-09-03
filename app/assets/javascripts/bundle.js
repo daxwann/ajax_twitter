@@ -229,27 +229,28 @@ class TweetCompose {
   // PARSE INPUT
 
   highlightAllMentions($target) {
-    let content = $target.text();
+    // regex
     const ampersand = /(?:[\s]|^)(\@[0-9A-Za-z\_]+)/g;
     const highlighted = /\<span class\=\"highlight\"\>([\S]+)\<\/span\>/g;
     
-    let matchesHighlighted = content.match(highlighted);
-    if (matchesHighlighted) {
-      matchesHighlighted.forEach((match) => {
-        content = content.replace(match, `${$1}`);
+    // clear highlights
+    let html = $target.html();
+
+    html = html.replace(highlighted, "$1");
+    console.log(html);
+    $target.html(html);
+
+    // highlight words begining with @
+    let text = $target.text();
+    let resultAmpersand = text.match(ampersand);
+
+    if (resultAmpersand) {
+      resultAmpersand.forEach((match) => {
+        text = text.replace(match, `<span class="highlight">${match}</span>`);
       });
     }
-
-    console.log(content);
-
-    let matchesAmpersand = content.match(ampersand);
-    if (matchesAmpersand) {
-      matchesAmpersand.forEach((match) => {
-        content = content.replace(match, `<span class="highlight">${match}</span>`)
-      });
-
-      $target.html(content);
-    }
+    
+    $target.html(text);
   }
 
   parseCurrentMention(content, selectedIdx) {
