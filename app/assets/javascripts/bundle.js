@@ -219,7 +219,9 @@ class TweetCompose {
 
   handleInput() {
     this.$formEl.on("input", ".tweet-content", (e) => {
-      this.highlightAllMentions($(e.currentTarget));
+      let caretPos = this.getCaretCharacterOffsetWithin(e.currentTarget);
+      this.highlightAllMentions(e.currentTarget);
+      this.setCaretPosition(e.currentTarget, caretPos);
       // const selectedMention = this.parseCurrentMention(value);
       // this.searchForUsers(selectedMention);
       // this.checkCharCount(value);
@@ -228,9 +230,10 @@ class TweetCompose {
 
   // PARSE INPUT
 
-  highlightAllMentions($target) {
+  highlightAllMentions(targetElem) {
+    const $target = $(targetElem);
     // regex
-    const ampersand = /(?:[\s]|^)(\@[0-9A-Za-z\_]+)/g;
+    const at = /(?:[\s]|^)(\@[0-9A-Za-z\_]+)/g;
     const highlighted = /\<span class\=\"highlight\"\>([\S]+)\<\/span\>/g;
     
     // clear highlights
@@ -242,16 +245,79 @@ class TweetCompose {
 
     // highlight words begining with @
     let text = $target.text();
-    let resultAmpersand = text.match(ampersand);
+    let resultAt = text.match(at);
 
-    if (resultAmpersand) {
-      resultAmpersand.forEach((match) => {
+    if (resultAt) {
+      resultAt.forEach((match) => {
         text = text.replace(match, `<span class="highlight">${match}</span>`);
       });
     }
     
     $target.html(text);
   }
+
+  getCaretCharacterOffsetWithin(element) {
+    let caretOffset = 0;
+    if (typeof window.getSelection != "undefined") {
+        let range = window.getSelection().getRangeAt(0);
+        let preCaretRange = range.cloneRange();
+        preCaretRange.selectNodeContents(element);
+        preCaretRange.setEnd(range.endContainer, range.endOffset);
+        caretOffset = preCaretRange.toString().length;
+    } else if (typeof document.selection != "undefined" && document.selection.type != "Control") {
+        let textRange = document.selection.createRange();
+        let preCaretTextRange = document.body.createTextRange();
+        preCaretTextRange.moveToElementText(element);
+        preCaretTextRange.setEndPoint("EndToEnd", textRange);
+        caretOffset = preCaretTextRange.text.length;
+    }
+    return caretOffset;
+  }
+
+  createRange(elem, caretPos, range) {
+    if (!range) {
+        range = document.createRange()
+        range.selectNode(elem);
+        range.setStart(elem, 0);
+    }
+
+    if (caretPos === 0) {
+        range.setEnd(elem, caretPos);
+    } else if (elem && caretPos > 0) {
+        if (elem.nodeType === elem.TEXT_NODE) {
+            if (elem.textContent.length < caretPos) {
+                caretPos -= elem.textContent.length;
+            } else {
+                 range.setEnd(elem, caretPos);
+                 caretPos = 0;
+            }
+        } else {
+            for (var lp = 0; lp < elem.childNodes.length; lp++) {
+                range = this.createRange(elem.childNodes[lp], caretPos, range);
+
+                if (caretPos === 0) {
+                   break;
+                }
+            }
+        }
+   } 
+
+   return range;
+};
+
+  setCaretPosition(elem, caretPos) {
+    if (caretPos >= 0) {
+        let selection = window.getSelection();
+
+        let range = this.createRange(elem, caretPos);
+
+        if (range) {
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+    }
+};
 
   parseCurrentMention(content, selectedIdx) {
     // get content before and after the selected position
