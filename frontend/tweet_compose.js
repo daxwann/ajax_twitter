@@ -37,33 +37,27 @@ class TweetCompose {
   highlightAllMentions(targetElem) {
     const $target = $(targetElem);
     // regex
-    const at = /(?:[\s]|^)(\@[0-9A-Za-z\_]+)/g;
+    const at = /([\s]|^)(\@[0-9A-Za-z\_]+)/g;
     const highlighted = /\<span class\=\"highlight\"\>([\S]+)\<\/span\>/g;
     
     // clear highlights
     let html = $target.html();
 
     html = html.replace(highlighted, "$1");
-    console.log(html);
     $target.html(html);
 
     // highlight words begining with @
     let text = $target.text();
-    let resultAt = text.match(at);
-
-    if (resultAt) {
-      resultAt.forEach((match) => {
-        text = text.replace(match, `<span class="highlight">${match}</span>`);
-      });
-    }
+    html = text.replace(at, '$1<span class="highlight">$2</span>');
     
-    $target.html(text);
+    $target.html(html);
   }
 
   getCaretCharacterOffsetWithin(element) {
     let caretOffset = 0;
     if (typeof window.getSelection != "undefined") {
         let range = window.getSelection().getRangeAt(0);
+        console.log(range);
         let preCaretRange = range.cloneRange();
         preCaretRange.selectNodeContents(element);
         preCaretRange.setEnd(range.endContainer, range.endOffset);
