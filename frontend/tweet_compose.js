@@ -33,6 +33,15 @@ class TweetCompose {
   }
 
   // PARSE INPUT
+  escape(s) {
+    let lookup = {
+        '&': "&amp;",
+        '"': "&quot;",
+        '<': "&lt;",
+        '>': "&gt;"
+    };
+    return s.replace( /[&"<>]/g, (c) => lookup[c] );
+  } 
 
   highlightAllMentions(targetElem) {
     const $target = $(targetElem);
@@ -42,14 +51,13 @@ class TweetCompose {
     
     // clear highlights
     let html = $target.html();
-
     html = html.replace(highlighted, "$1");
     $target.html(html);
 
     // highlight words begining with @
-    let text = $target.text();
+    let text = this.escape($target.text());
     html = text.replace(at, '$1<span class="highlight">$2</span>');
-    
+
     $target.html(html);
   }
 
@@ -57,7 +65,6 @@ class TweetCompose {
     let caretOffset = 0;
     if (typeof window.getSelection != "undefined") {
         let range = window.getSelection().getRangeAt(0);
-        console.log(range);
         let preCaretRange = range.cloneRange();
         preCaretRange.selectNodeContents(element);
         preCaretRange.setEnd(range.endContainer, range.endOffset);
@@ -73,6 +80,9 @@ class TweetCompose {
   }
 
   createRange(elem, caretPos, range) {
+    console.log(elem);
+    console.log(caretPos);
+    console.log(range);
     if (!range) {
         range = document.createRange()
         range.selectNode(elem);
@@ -85,9 +95,11 @@ class TweetCompose {
         if (elem.nodeType === elem.TEXT_NODE) {
             if (elem.textContent.length < caretPos) {
                 caretPos -= elem.textContent.length;
+                console.log("text");
             } else {
                  range.setEnd(elem, caretPos);
                  caretPos = 0;
+                 console.log("text2");
             }
         } else {
             for (var lp = 0; lp < elem.childNodes.length; lp++) {
@@ -101,7 +113,7 @@ class TweetCompose {
    } 
 
    return range;
-};
+  }
 
   setCaretPosition(elem, caretPos) {
     if (caretPos >= 0) {
@@ -116,6 +128,7 @@ class TweetCompose {
         }
     }
 };
+
 
   parseCurrentMention(content, selectedIdx) {
     // get content before and after the selected position
