@@ -275,47 +275,45 @@ class TweetCompose {
     return caretOffset;
   }
 
-  createRange(elem, caretPos, range) {
-    console.log(elem);
-    console.log(caretPos);
-    console.log(range);
+  createRange(elem, caret, range) {
+    console.log(`element: ${elem}`)
+    console.log(`node type: ${elem.nodeType}`);
     if (!range) {
         range = document.createRange()
         range.selectNode(elem);
         range.setStart(elem, 0);
     }
 
-    if (caretPos === 0) {
-        range.setEnd(elem, caretPos);
-    } else if (elem && caretPos > 0) {
-        if (elem.nodeType === elem.TEXT_NODE) {
-            if (elem.textContent.length < caretPos) {
-                caretPos -= elem.textContent.length;
-                console.log("text");
-            } else {
-                 range.setEnd(elem, caretPos);
-                 caretPos = 0;
-                 console.log("text2");
-            }
+    if (caret.pos === 0) {
+      range.setEnd(elem, caret.pos);
+    } else if (elem && caret.pos > 0) {
+      if (elem.nodeType === elem.TEXT_NODE) {
+        console.log(`text length: ${elem.textContent.length}`);
+        console.log(`caret position: ${caret.pos}`)
+        if (elem.textContent.length < caret.pos) {
+          caret.pos -= elem.textContent.length;
         } else {
-            for (var lp = 0; lp < elem.childNodes.length; lp++) {
-                range = this.createRange(elem.childNodes[lp], caretPos, range);
-
-                if (caretPos === 0) {
-                   break;
-                }
-            }
+          range.setEnd(elem, caret.pos);
+          caret.pos = 0;
         }
-   } 
-
-   return range;
+      } else {
+        console.log(`nested elements: ${elem.childNodes.length}`);
+        for (let i = 0; i < elem.childNodes.length; i++) {
+          range = this.createRange(elem.childNodes[i], caret, range);
+          if (caret.pos === 0) {
+            break;
+          }
+        }
+      }
+    } 
+    return range;
   }
 
   setCaretPosition(elem, caretPos) {
     if (caretPos >= 0) {
         let selection = window.getSelection();
 
-        let range = this.createRange(elem, caretPos);
+        let range = this.createRange(elem, { pos: caretPos });
 
         if (range) {
             range.collapse(false);
