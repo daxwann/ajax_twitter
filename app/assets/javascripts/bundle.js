@@ -219,12 +219,13 @@ class TweetCompose {
 
   handleInput() {
     this.$formEl.on("input", ".tweet-content", (e) => {
+      let $target = $(e.currentTarget);
       let caretPos = this.getCaretCharacterOffsetWithin(e.currentTarget);
-      this.highlightAllMentions(e.currentTarget);
+      this.highlightAllMentions($target);
       this.setCaretPosition(e.currentTarget, caretPos);
       // const selectedMention = this.parseCurrentMention(value);
       // this.searchForUsers(selectedMention);
-      // this.checkCharCount(value);
+      this.checkCharCount($target.text());
     });
   }
 
@@ -239,10 +240,9 @@ class TweetCompose {
     return s.replace( /[&"<>]/g, (c) => lookup[c] );
   } 
 
-  highlightAllMentions(targetElem) {
-    const $target = $(targetElem);
+  highlightAllMentions($target) {
     // regex
-    const at = /([\s]|^)(\@[0-9A-Za-z\_]+)/g;
+    const at = /([\s]|^)(\@[0-9A-Za-z_]+)/g;
     const highlighted = /\<span class\=\"highlight\"\>([\S]+)\<\/span\>/g;
     
     // clear highlights
@@ -253,31 +253,31 @@ class TweetCompose {
     // highlight words begining with @
     let text = this.escape($target.text());
     html = text.replace(at, '$1<span class="highlight">$2</span>');
-
     $target.html(html);
   }
 
   getCaretCharacterOffsetWithin(element) {
-    let caretOffset = 0;
-    if (typeof window.getSelection != "undefined") {
-        let range = window.getSelection().getRangeAt(0);
-        let preCaretRange = range.cloneRange();
-        preCaretRange.selectNodeContents(element);
-        preCaretRange.setEnd(range.endContainer, range.endOffset);
-        caretOffset = preCaretRange.toString().length;
-    } else if (typeof document.selection != "undefined" && document.selection.type != "Control") {
+    let caretOffset = 0;        
+    let range = window.getSelection().getRangeAt(0);
+    let preCaretRange = range.cloneRange();
+    preCaretRange.selectNodeContents(element);
+    preCaretRange.setEnd(range.endContainer, range.endOffset);
+    caretOffset = preCaretRange.toString().length;
+
+    /* ---IE 8- Support
+    if (typeof document.selection != "undefined" && document.selection.type != "Control") {
         let textRange = document.selection.createRange();
         let preCaretTextRange = document.body.createTextRange();
         preCaretTextRange.moveToElementText(element);
         preCaretTextRange.setEndPoint("EndToEnd", textRange);
         caretOffset = preCaretTextRange.text.length;
     }
+    */
+
     return caretOffset;
   }
 
   createRange(elem, caret, range) {
-    console.log(`element: ${elem}`)
-    console.log(`node type: ${elem.nodeType}`);
     if (!range) {
         range = document.createRange()
         range.selectNode(elem);
@@ -288,8 +288,6 @@ class TweetCompose {
       range.setEnd(elem, caret.pos);
     } else if (elem && caret.pos > 0) {
       if (elem.nodeType === elem.TEXT_NODE) {
-        console.log(`text length: ${elem.textContent.length}`);
-        console.log(`caret position: ${caret.pos}`)
         if (elem.textContent.length < caret.pos) {
           caret.pos -= elem.textContent.length;
         } else {
@@ -297,7 +295,6 @@ class TweetCompose {
           caret.pos = 0;
         }
       } else {
-        console.log(`nested elements: ${elem.childNodes.length}`);
         for (let i = 0; i < elem.childNodes.length; i++) {
           range = this.createRange(elem.childNodes[i], caret, range);
           if (caret.pos === 0) {
@@ -326,7 +323,6 @@ class TweetCompose {
 
   parseCurrentMention(content, selectedIdx) {
     // get content before and after the selected position
-    console.log(selectedIdx);
     const contentBeforeSelected = content.slice(0, selectedIdx);
     const contentAfterSelected = content.slice(selectedIdx);
 
