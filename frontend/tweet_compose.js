@@ -1,5 +1,7 @@
 const APIUtils = require("./api_utils.js");
 
+// Composing tweet, word count, highlight mentions, suggest users, handle submit
+
 class TweetCompose {
   constructor($formEl) {
     this.$formEl = $formEl;
@@ -27,8 +29,8 @@ class TweetCompose {
       let caretPos = this.getCaretCharacterOffsetWithin(e.currentTarget);
       this.highlightAllMentions($target);
       this.setCaretPosition(e.currentTarget, caretPos);
-      // const selectedMention = this.parseCurrentMention(value);
-      // this.searchForUsers(selectedMention);
+      const selectedMention = this.parseCurrentMention($target.text(), caretPos);
+      this.searchForUsers(selectedMention);
       this.checkCharCount($target.text());
     });
   }
@@ -68,7 +70,7 @@ class TweetCompose {
     preCaretRange.setEnd(range.endContainer, range.endOffset);
     caretOffset = preCaretRange.toString().length;
 
-    /* ---IE 8- Support
+    /* --- Support for IE 8 or older
     if (typeof document.selection != "undefined" && document.selection.type != "Control") {
         let textRange = document.selection.createRange();
         let preCaretTextRange = document.body.createTextRange();
@@ -122,8 +124,7 @@ class TweetCompose {
             selection.addRange(range);
         }
     }
-};
-
+  }
 
   parseCurrentMention(content, selectedIdx) {
     // get content before and after the selected position
@@ -145,8 +146,6 @@ class TweetCompose {
       selectedContent = selectedContent.concat(strBeforeEnd[1]);
     }
 
-    console.log(selectedContent);
-
     return selectedContent;
   }
 
@@ -163,10 +162,10 @@ class TweetCompose {
   }
 
   handleSearchResult(selectedMention, res) {
-    this.$atResult.empty();
+    this.$suggestionList.empty();
     res.forEach((user) => {
       this.renderSuggestedUser(user);
-      this.checkExactMatch(user, selectedMention);
+      //this.checkExactMatch(user, selectedMention);
     });
   }
 
@@ -176,7 +175,7 @@ class TweetCompose {
     const $user = $(`<li>
         <a href="/users/${user.id}">@${user.username}</a>
       </li>`);
-    this.$atResult.append($user);
+    this.$suggestionList.append($user);
   }
 
   // FIND ALL MENTIONED USERS
