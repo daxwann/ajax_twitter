@@ -19,7 +19,14 @@ class TweetsController < ApplicationController
   end
 
   private
+
   def tweet_params
     params.require(:tweet).permit(:content, mentioned_user_ids: [])
+  end
+
+  def parseIds(content)
+    ids = []
+
+    return ids
   end
 end

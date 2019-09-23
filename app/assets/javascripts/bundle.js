@@ -205,6 +205,7 @@ class TweetCompose {
     this.submitOn = true;
     this.handleSubmit();
     this.handleInput();
+    this.handleClickOnSuggestion();
   }
 
   // EVENTS
@@ -213,7 +214,7 @@ class TweetCompose {
     this.$formEl.on("submit", (e) => {
       e.preventDefault();
 
-      this.$atResult.empty();
+      this.$suggestionList.empty();
       const formData = $(e.currentTarget).serializeJSON();
       this.submit(formData);
     });
@@ -225,9 +226,17 @@ class TweetCompose {
       let caretPos = this.getCaretCharacterOffsetWithin(e.currentTarget);
       this.highlightAllMentions($target);
       this.setCaretPosition(e.currentTarget, caretPos);
-      const selectedMention = this.parseCurrentMention($target.text(), caretPos);
-      this.searchForUsers(selectedMention);
+      let mentionedUser = this.parseCurrentMention($target.text(), caretPos);
+      this.searchForUsers(mentionedUser);
       this.checkCharCount($target.text());
+    });
+  }
+
+  handleClickOnSuggestion() {
+    this.$suggestionList.on("click", ".suggested-user__btn", (e) => {
+      let $target = $(e.currentTarget);
+      this.replaceSelectedText($target.data("username"));
+      this.clearSuggestionList();
     });
   }
 
@@ -321,15 +330,15 @@ class TweetCompose {
         }
     }
   }
-
+  
   parseCurrentMention(content, selectedIdx) {
     // get content before and after the selected position
     const contentBeforeSelected = content.slice(0, selectedIdx);
     const contentAfterSelected = content.slice(selectedIdx);
 
     // get content between @ symbol and end of word
-    const toPrevAt = /(?:[\s]|^)\@([0-9A-Za-z\_]+)$/g;
-    const toEnd = /^([a-zA-Z0-9\_]+)/g;
+    const toPrevAt = /(?:[\s]|^)\@([0-9A-Za-z_]+)$/g;
+    const toEnd = /^([a-zA-Z0-9_]+)/g;
     const strAfterAt = toPrevAt.exec(contentBeforeSelected);
     const strBeforeEnd = toEnd.exec(contentAfterSelected);
     if (!strAfterAt) {
@@ -345,6 +354,7 @@ class TweetCompose {
     return selectedContent;
   }
 
+
   // SEARCH SUGGESTIONS
 
   searchForUsers(selectedMention) {
@@ -353,25 +363,46 @@ class TweetCompose {
         this.handleSearchResult(selectedMention, res);
       });
     } else {
-      this.$suggestionList.empty();
+      this.clearSuggestionList();
     }
   }
 
-  handleSearchResult(selectedMention, res) {
+  clearSuggestionList() {
     this.$suggestionList.empty();
+  }
+
+  handleSearchResult(selectedMention, res) {
+    this.clearSuggestionList();
     res.forEach((user) => {
       this.renderSuggestedUser(user);
       //this.checkExactMatch(user, selectedMention);
     });
   }
 
-  // USER SUGGESTIONS
-
   renderSuggestedUser(user) {
-    const $user = $(`<li>
-        <a href="/users/${user.id}">@${user.username}</a>
+    const $user = $(`<li class="suggested-user__item">
+        <button type="button" class="suggested-user__btn" data-username="${user.username}">@${user.username}</button>
       </li>`);
     this.$suggestionList.append($user);
+  }
+
+  // CLICK ON SUGGESTED USERNAME
+
+  replaceSelectedText(replacementText) {
+    let sel = window.getSelection();
+
+    // select word underneath caret
+    sel.collapseToStart();
+    sel.modify("move", "backward", "word");
+    sel.modify("extend", "forward", "word");
+
+    // replace word
+    let range = sel.getRangeAt(0);
+    range.deleteContents();
+    range.insertNode(document.createTextNode(replacementText));
+
+    // move caret to end of word
+    range.collapse(false);
   }
 
   // FIND ALL MENTIONED USERS
